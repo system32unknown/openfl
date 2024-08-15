@@ -202,6 +202,7 @@ class BitmapData implements IBitmapDrawable
 	// @:noCompletion private var __vertexBufferColorTransform:ColorTransform;
 	// @:noCompletion private var __vertexBufferAlpha:Float;
 	@:noCompletion private var __framebuffer:GLFramebuffer;
+	@:noCompletion private var __hasSharedTexture:Bool;
 	@SuppressWarnings("checkstyle:Dynamic") @:noCompletion private var __framebufferContext:#if lime RenderContext #else Dynamic #end;
 	@:noCompletion private var __indexBuffer:IndexBuffer3D;
 	@SuppressWarnings("checkstyle:Dynamic") @:noCompletion private var __indexBufferContext:#if lime RenderContext #else Dynamic #end;
@@ -406,7 +407,12 @@ class BitmapData implements IBitmapDrawable
 
 	/**
 		Returns a new BitmapData object that is a clone of the original instance with an exact copy of the contained bitmap.
-		@return		A new BitmapData object that is identical to the original.
+
+		When the BitmapData is not readable, the texture becomes a shared resource between the original and the cloned instance.
+		In this case, the texture will not be disposed of automatically when either BitmapData instance is disposed.
+		To properly manage the texture's lifecycle, BitmapData.getTexture() should be called, and the texture should be disposed of manually.
+
+		@return A new BitmapData object that is identical to the original.
 	**/
 	public function clone():BitmapData
 	{
@@ -432,6 +438,9 @@ class BitmapData implements IBitmapDrawable
 			bitmapData.__texture = __texture;
 			bitmapData.__textureContext = __textureContext;
 			bitmapData.__isValid = true;
+			bitmapData.__hasSharedTexture = true;
+
+			__hasSharedTexture = true;
 		}
 		else
 		{
@@ -766,6 +775,11 @@ class BitmapData implements IBitmapDrawable
 		__framebufferContext = null;
 		__texture = null;
 		__textureContext = null;
+
+		if (!__hasSharedTexture && __texture != null)
+		{
+			__texture.dispose();
+		}
 
 		// if (__texture != null) {
 		//
@@ -1360,16 +1374,21 @@ class BitmapData implements IBitmapDrawable
 
 	/**
 		**BETA**
+		Creates a new BitmapData instance from a Stage3D rectangle texture. The resulting
+		BitmapData instance will be hardware-only, meaning that it cannot be read or
+		manipulated directly in software. The `readable` property will be set to `false`,
+		indicating that certain operations, such as pixel manipulation, will not be permitted.
 
-		Creates a new BitmapData instance from a Stage3D rectangle texture. The
-		BitmapData instance will hardware-only, and the `readable` property will
-		be false, meaning that some operations will not be permitted.
+		When a BitmapData instance is created in this manner, the texture becomes a shared resource
+		between the original Texture/RectangleTexture and the BitmapData instance. As a result, the
+		texture will not be automatically disposed of when the BitmapData instance is disposed.
+		To properly manage the texture's lifecycle, you should call `BitmapData.getTexture()` and
+		manually dispose of the texture when it is no longer needed.
 
 		This method is not supported by the Flash target.
 
-		@param	texture	A Texture or RectangleTexture instance
-		@returns	A new BitmapData if successful, or `null` if unsuccessful
-
+		@param	texture	A Texture or RectangleTexture instance.
+		@returns	A new BitmapData instance if successful, or `null` if unsuccessful.
 		@see `BitmapData.readable`
 	**/
 	public static function fromTexture(texture:TextureBase):BitmapData
@@ -1377,6 +1396,7 @@ class BitmapData implements IBitmapDrawable
 		if (texture == null) return null;
 
 		var bitmapData = new BitmapData(texture.__width, texture.__height, true, 0);
+		bitmapData.__hasSharedTexture = true;
 		bitmapData.readable = false;
 		bitmapData.__texture = texture;
 		bitmapData.__textureContext = texture.__textureContext;
@@ -2227,11 +2247,24 @@ class BitmapData implements IBitmapDrawable
 
 	/**
 		**BETA**
+		Retrieves a hardware texture that represents this BitmapData instance. This texture
+		can be used in Stage3D rendering contexts. If a texture has already been created
+		and is associated with a different context, a new texture will be created for the
+		specified Context3D instance.
 
-		Get a hardware texture representing this BitmapData instance
+		This method will generate a texture if one does not already exist or if the existing
+		texture is associated with a different `Context3D`. It will also update the texture
+		if the image data has changed. If the BitmapData is not readable and an image exists,
+		the image reference may be cleared after uploading to the texture.
 
-		@param	context	A Context3D instance
-		@returns	A Texture or RectangleTexture instance
+		When using this method, the resulting texture becomes a shared resource. It will not be
+		automatically disposed of when the BitmapData instance is disposed. To manage the texture
+		lifecycle properly, you must manually dispose of the texture when it is no longer needed.
+
+		@param	context	A `Context3D` instance representing the rendering context in which the texture will be used.
+		@returns	A `Texture` or `RectangleTexture` instance representing the BitmapData, or `null` if the BitmapData is not valid.
+
+		@see `BitmapData.readable`
 	**/
 	@:dox(hide) public function getTexture(context:Context3D):TextureBase
 	{
@@ -2299,6 +2332,8 @@ class BitmapData implements IBitmapDrawable
 			image = null;
 		}
 		#end
+
+		__hasSharedTexture = true;
 
 		return __texture;
 	}
