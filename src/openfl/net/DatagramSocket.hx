@@ -320,14 +320,15 @@ class DatagramSocket extends EventDispatcher
 		}
 	}
 
-	override public function addEventListener<T>(type:EventType<T>, listener:T->Void, priority:Int = 0):Void
+	override public function addEventListener<T>(type:EventType<T>, listener:Dynamic->Void, useCapture:Bool = false, priority:Int = 0,
+			useWeakReference:Bool = false):Void
 	{
 		var dataEvent:EventType<DatagramSocketDataEvent> = DatagramSocketDataEvent.DATA;
 
 		if (type == dataEvent && !this.hasEventListener(dataEvent))
 		{
 			super.addEventListener(type, listener);
-			CrossByte.current.addEventListener(Event.TICK, __onTickUpdate);
+			Lib.current.addEventListener(Event.ENTER_FRAME, __onFrameUpdate);
 		}
 		else
 		{
