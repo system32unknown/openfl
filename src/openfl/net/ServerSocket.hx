@@ -172,18 +172,21 @@ class ServerSocket extends EventDispatcher
 	**/
 	public function close():Void
 	{
-		try
+		if (!__closed)
 		{
-			__serverSocket.close();
+			try
+			{
+				__serverSocket.close();
+			}
+			catch (e:Dynamic)
+			{
+				throw new OFLError("Operation attempted on invalid socket.");
+			}
+			listening = false;
+			bound = false;
+			__closed = true;
+			Lib.current.removeEventListener(Event.ENTER_FRAME, this_onEnterFrame);
 		}
-		catch (e:Dynamic)
-		{
-			throw new OFLError("Operation attempted on invalid socket.");
-		}
-		listening = false;
-		bound = false;
-		__closed = true;
-		Lib.current.removeEventListener(Event.ENTER_FRAME, this_onEnterFrame);
 	}
 
 	/**
@@ -282,13 +285,11 @@ class ServerSocket extends EventDispatcher
 			useWeakReference:Bool = false):Void
 	{
 		var connectEvent:String = Event.CONNECT;
-		
-		if (type == connectEvent && !this.hasEventListener(connectEvent))
+		super.addEventListener(type, listener, useCapture, priority, useWeakReference);
+
+		if (type == connectEvent && this.hasEventListener(connectEvent))
 		{
-			super.addEventListener(type, listener, useCapture, priority, useWeakReference);
 			Lib.current.addEventListener(Event.ENTER_FRAME, this_onEnterFrame);
-		} else {
-			super.addEventListener(type, listener, useCapture, priority, useWeakReference);
 		}
 	}
 

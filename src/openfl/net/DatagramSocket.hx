@@ -158,7 +158,7 @@ class DatagramSocket extends EventDispatcher
 			switch (e)
 			{
 				case "Bind failed":
-					throw new IOError("Operation attempted on invalid socket.");
+					dispatchEvent(new Event(Event.CLOSE));
 				case "Unresolved host":
 					throw new ArgumentError("One of the parameters is invalid");
 			}
@@ -184,6 +184,8 @@ class DatagramSocket extends EventDispatcher
 		__isReceiving = false;
 		bound = false;
 		Lib.current.removeEventListener(Event.ENTER_FRAME, __onFrameUpdate);
+
+		dispatchEvent(new Event(Event.CLOSE));
 	}
 
 	/**
@@ -323,16 +325,12 @@ class DatagramSocket extends EventDispatcher
 	override public function addEventListener<T>(type:EventType<T>, listener:Dynamic->Void, useCapture:Bool = false, priority:Int = 0,
 			useWeakReference:Bool = false):Void
 	{
-		var dataEvent:EventType<DatagramSocketDataEvent> = DatagramSocketDataEvent.DATA;
+		var dataEvent:String = DatagramSocketDataEvent.DATA;
+		super.addEventListener(type, listener, useCapture, priority, weakReference);
 
 		if (type == dataEvent && !this.hasEventListener(dataEvent))
 		{
-			super.addEventListener(type, listener);
 			Lib.current.addEventListener(Event.ENTER_FRAME, __onFrameUpdate);
-		}
-		else
-		{
-			super.addEventListener(type, listener);
 		}
 	}
 
@@ -390,11 +388,24 @@ class DatagramSocket extends EventDispatcher
 
 	@:noCompletion private function get_localAddress():String
 	{
-		if (bound)
+		#if neko
+		try
 		{
-			return __udpSocket.host().host.toString();
+			return __udpSocket.host().host.host;
 		}
-		return null;
+		catch (e:Dynamic)
+		{
+			return null;
+		}
+		#else
+		var host = __udpSocket.host();
+
+		if (host == null)
+		{
+			return null;
+		}
+		return host.host.host;
+		#end
 	}
 
 	@:noCompletion private function get_localPort():Int
@@ -408,11 +419,24 @@ class DatagramSocket extends EventDispatcher
 
 	@:noCompletion private function get_remoteAddress():String
 	{
-		if (connected)
+		#if neko
+		try
 		{
-			return __udpSocket.peer().host.toString();
+			return __udpSocket.peer().host.host;
 		}
-		return null;
+		catch (e:Dynamic)
+		{
+			return null;
+		}
+		#else
+		var host = __udpSocket.peer();
+
+		if (host == null)
+		{
+			return "";
+		}
+		return host.host.host;
+		#end
 	}
 
 	@:noCompletion private function get_remotePort():Int
