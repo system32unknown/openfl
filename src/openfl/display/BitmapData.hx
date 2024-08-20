@@ -529,14 +529,10 @@ class BitmapData implements IBitmapDrawable
 		}
 
 		var bitmapData:BitmapData = null;
-		var foundDifference,
-			pixel:ARGB,
-			otherPixel:ARGB,
-			comparePixel:ARGB,
-			r,
-			g,
-			b,
-			a;
+		var foundDifference:Bool = false;
+		var pixel:ARGB;
+		var otherPixel:ARGB;
+		var comparePixel:ARGB;
 
 		for (y in 0...height)
 		{
@@ -550,9 +546,9 @@ class BitmapData implements IBitmapDrawable
 
 				if (pixel != otherPixel)
 				{
-					r = pixel.r - otherPixel.r;
-					g = pixel.g - otherPixel.g;
-					b = pixel.b - otherPixel.b;
+					var r = pixel.r - otherPixel.r;
+					var g = pixel.g - otherPixel.g;
+					var b = pixel.b - otherPixel.b;
 
 					if (r < 0) r *= -1;
 					if (g < 0) g *= -1;
@@ -560,7 +556,7 @@ class BitmapData implements IBitmapDrawable
 
 					if (r == 0 && g == 0 && b == 0)
 					{
-						a = pixel.a - otherPixel.a;
+						var a = pixel.a - otherPixel.a;
 
 						if (a != 0)
 						{
@@ -2446,7 +2442,8 @@ class BitmapData implements IBitmapDrawable
 		else if ((secondObject is BitmapData))
 		{
 			var secondBitmapData:BitmapData = cast secondObject;
-			var x, y;
+			var x:Int;
+			var y:Int;
 
 			if (secondBitmapDataPoint == null)
 			{
@@ -2492,7 +2489,8 @@ class BitmapData implements IBitmapDrawable
 				var testPixels = secondBitmapData.getPixels(hitRect);
 
 				var length = Std.int(hitRect.width * hitRect.height);
-				var pixel, testPixel;
+				var pixel:UInt;
+				var testPixel:UInt;
 
 				for (i in 0...length)
 				{
