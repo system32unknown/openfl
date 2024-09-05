@@ -17,11 +17,7 @@ import sys.io.Process;
 #if (lime && !macro)
 import lime.ui.FileDialog;
 #end
-#if (lime >= "8.2.0")
-import lime.system.ThreadPool;
-#else
 import lime.system.BackgroundWorker;
-#end
 
 @:noCompletion private typedef HaxeFile = sys.io.File;
 
@@ -442,7 +438,7 @@ class File extends FileReference
 		#end
 
 	@:noCompletion private var __fileDialog:#if (lime && !macro) FileDialog #else Dynamic #end;
-	@:noCompletion private var __fileWorker:#if (lime >= "8.2.0") ThreadPool #else BackgroundWorker #end;
+	@:noCompletion private var __fileWorker:BackgroundWorker;
 	@:noCompletion private var __sep:String = #if windows "\\" #else "/" #end;
 	@:noCompletion private var __fileStatsDirty:Bool = false;
 
@@ -982,7 +978,7 @@ class File extends FileReference
 	**/
 	public function copyToAsync(newLocation:FileReference, overwrite:Bool = false):Void
 	{
-		__fileWorker = #if (lime >= "8.2.0") new ThreadPool() #else new BackgroundWorker() #end;
+		__fileWorker = new BackgroundWorker();
 		__fileWorker.onError.add(function(e:Dynamic):Void
 		{
 			__fileWorker = null;
@@ -993,14 +989,7 @@ class File extends FileReference
 			__fileWorker = null;
 			dispatchEvent(event);
 		});
-
-		#if (lime >= "8.2.0")
-		// This is a silly break in an API
-		__fileWorker.run(
-		#else
-		__fileWorker.doWork.add(
-		#end
-		function(m:Dynamic)
+		__fileWorker.doWork.add(function(m:Dynamic)
 		{
 			try
 			{
@@ -1024,9 +1013,7 @@ class File extends FileReference
 			__fileWorker.sendComplete(new Event(Event.COMPLETE));
 		});
 
-		#if (lime < "8.2.0")
 		__fileWorker.run();
-		#end
 	}
 
 	/**
@@ -1089,7 +1076,14 @@ class File extends FileReference
 
 			for (file in files)
 			{
-				file.deleteFile();
+				if (file.isDirectory)
+				{
+					file.deleteDirectory(deleteDirectoryContents);
+				}
+				else
+				{
+					file.deleteFile();
+				}
 			}
 		}
 
@@ -1118,7 +1112,7 @@ class File extends FileReference
 	**/
 	public function deleteDirectoryAsync(deleteDirectoryContents:Bool = false):Void
 	{
-		__fileWorker = #if (lime >= "8.2.0") new ThreadPool() #else new BackgroundWorker() #end;
+		__fileWorker = new BackgroundWorker();
 		__fileWorker.onError.add(function(e:Dynamic):Void
 		{
 			__fileWorker = null;
@@ -1129,14 +1123,7 @@ class File extends FileReference
 			__fileWorker = null;
 			dispatchEvent(event);
 		});
-
-		#if (lime >= "8.2.0")
-		// This is a silly break in an API
-		__fileWorker.run(
-		#else
-		__fileWorker.doWork.add(
-		#end
-		function(m:Dynamic)
+		__fileWorker.doWork.add(function(m:Dynamic)
 		{
 			try
 			{
@@ -1160,9 +1147,7 @@ class File extends FileReference
 			__fileWorker.sendComplete(new Event(Event.COMPLETE));
 		});
 
-		#if (lime < "8.2.0")
 		__fileWorker.run();
-		#end
 	}
 
 	/**
@@ -1202,7 +1187,7 @@ class File extends FileReference
 	**/
 	public function deleteFileAsync():Void
 	{
-		__fileWorker = #if (lime >= "8.2.0") new ThreadPool() #else new BackgroundWorker() #end;
+		__fileWorker = new BackgroundWorker();
 		__fileWorker.onError.add(function(e:Dynamic):Void
 		{
 			__fileWorker = null;
@@ -1213,14 +1198,7 @@ class File extends FileReference
 			__fileWorker = null;
 			dispatchEvent(event);
 		});
-
-		#if (lime >= "8.2.0")
-		// This is a silly break in an API
-		__fileWorker.run(
-		#else
-		__fileWorker.doWork.add(
-		#end
-		function(m:Dynamic)
+		__fileWorker.doWork.add(function(m:Dynamic)
 		{
 			try
 			{
@@ -1244,9 +1222,7 @@ class File extends FileReference
 			__fileWorker.sendComplete(new Event(Event.COMPLETE));
 		});
 
-		#if (lime < "8.2.0")
 		__fileWorker.run();
-		#end
 	}
 
 	/**
@@ -1325,7 +1301,7 @@ class File extends FileReference
 			throw new Error("Not a directory.", 3007);
 		}
 
-		__fileWorker = #if (lime >= "8.2.0") new ThreadPool() #else new BackgroundWorker() #end;
+		__fileWorker = new BackgroundWorker();
 		__fileWorker.onError.add(function(e:Dynamic):Void
 		{
 			__fileWorker = null;
@@ -1336,14 +1312,7 @@ class File extends FileReference
 			__fileWorker = null;
 			dispatchEvent(event);
 		});
-
-		#if (lime >= "8.2.0")
-		// This is a silly break in an API
-		__fileWorker.run(
-		#else
-		__fileWorker.doWork.add(
-		#end
-		function(m:Dynamic)
+		__fileWorker.doWork.add(function(m:Dynamic)
 		{
 			var directories:Array<String> = null;
 			try
@@ -1373,9 +1342,7 @@ class File extends FileReference
 			__fileWorker.sendComplete(new FileListEvent(FileListEvent.DIRECTORY_LISTING, files));
 		});
 
-		#if (lime < "8.2.0")
 		__fileWorker.run();
-		#end
 	}
 
 	/**
@@ -1609,7 +1576,7 @@ class File extends FileReference
 	**/
 	public function moveToAsync(newLocation:FileReference, overwrite:Bool = false):Void
 	{
-		__fileWorker = #if (lime >= "8.2.0") new ThreadPool() #else new BackgroundWorker() #end;
+		__fileWorker = new BackgroundWorker();
 		__fileWorker.onError.add(function(e:Dynamic):Void
 		{
 			__fileWorker = null;
@@ -1620,14 +1587,7 @@ class File extends FileReference
 			__fileWorker = null;
 			dispatchEvent(event);
 		});
-
-		#if (lime >= "8.2.0")
-		// This is a silly break in an API
-		__fileWorker.run(
-		#else
-		__fileWorker.doWork.add(
-		#end
-		function(m:Dynamic)
+		__fileWorker.doWork.add(function(m:Dynamic)
 		{
 			try
 			{
@@ -1651,9 +1611,7 @@ class File extends FileReference
 			__fileWorker.sendComplete(new Event(Event.COMPLETE));
 		});
 
-		#if (lime < "8.2.0")
 		__fileWorker.run();
-		#end
 	}
 
 	/**
