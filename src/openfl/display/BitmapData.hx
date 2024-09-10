@@ -2614,12 +2614,14 @@ class BitmapData implements IBitmapDrawable
 	}
 
 	/**
-		Locks an image so that any objects that reference the BitmapData object,
-		such as Bitmap objects, are not updated when this BitmapData object
-		changes. To improve performance, use this method along with the
-		`unlock()` method before and after numerous calls to the
-		`setPixel()` or `setPixel32()` method.
+		When targeting AIR, this method locks an image so that any objects 
+		that reference the BitmapData object, such as Bitmap objects, are not 
+		updated when this BitmapData object changes. To improve performance, 
+		use this method along with the `unlock()` method before and after numerous 
+		calls to the `setPixel()` or `setPixel32()` method.
 
+		Note: This method only provides an optimization on the AIR(Flash) target.
+		For all other targets, this method contains an empty function body.
 	**/
 	public function lock():Void {}
 
@@ -3114,11 +3116,16 @@ class BitmapData implements IBitmapDrawable
 	}
 
 	/**
-		Unlocks an image so that any objects that reference the BitmapData object,
-		such as Bitmap objects, are updated when this BitmapData object changes.
+		When targeting AIR, this method Unlocks an image so that any objects that reference 
+		the BitmapData object, such as Bitmap objects, are updated when this BitmapData object 
+		changes.
+
 		To improve performance, use this method along with the `lock()`
 		method before and after numerous calls to the `setPixel()` or
 		`setPixel32()` method.
+
+		Note: This method only provides an optimization on the AIR(Flash) target.
+		For all other targets, this method contains an empty function body.
 
 		@param changeRect The area of the BitmapData object that has changed. If
 						  you do not specify a value for this parameter, the
