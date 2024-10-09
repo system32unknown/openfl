@@ -408,10 +408,16 @@ class CanvasGraphics
 						fillCommands.cubicCurveTo(c.controlX1, c.controlY1, c.controlX2, c.controlY2, c.anchorX, c.anchorY);
 						strokeCommands.cubicCurveTo(c.controlX1, c.controlY1, c.controlX2, c.controlY2, c.anchorX, c.anchorY);
 
+						positionX = c.anchorX;
+						positionY = c.anchorY;
+
 					case CURVE_TO:
 						var c = data.readCurveTo();
 						fillCommands.curveTo(c.controlX, c.controlY, c.anchorX, c.anchorY);
 						strokeCommands.curveTo(c.controlX, c.controlY, c.anchorX, c.anchorY);
+
+						positionX = c.anchorX;
+						positionY = c.anchorY;
 
 					case LINE_TO:
 						var c = data.readLineTo();
