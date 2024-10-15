@@ -297,7 +297,7 @@ import hl.Gc;
 		#elseif hl
 		return Gc.stats().currentMemory;
 		#else
-		return System.totalMemory;
+		return cast(System.totalMemory, UInt);
 		#end
 	}
 
