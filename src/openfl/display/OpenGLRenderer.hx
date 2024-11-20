@@ -5,7 +5,6 @@ import openfl.display._internal.Context3DBitmap;
 import openfl.display._internal.Context3DBitmapData;
 import openfl.display._internal.Context3DDisplayObject;
 import openfl.display._internal.Context3DDisplayObjectContainer;
-import openfl.display._internal.Context3DGraphics;
 import openfl.display._internal.Context3DMaskShader;
 import openfl.display._internal.Context3DSimpleButton;
 import openfl.display._internal.Context3DTextField;
@@ -999,10 +998,10 @@ class OpenGLRenderer extends DisplayObjectRenderer
 	{
 		if (clipRect != null)
 		{
-			var x:Float = Math.floor(clipRect.x);
-			var y:Float = Math.floor(clipRect.y);
-			var width:Float = (clipRect.width > 0 ? Math.ceil(clipRect.right) - x : 0);
-			var height:Float = (clipRect.height > 0 ? Math.ceil(clipRect.bottom) - y : 0);
+			var x = Math.ffloor(clipRect.x);
+			var y = Math.ffloor(clipRect.y);
+			var width = (clipRect.width > 0 ? Math.fceil(clipRect.right) - x : 0);
+			var height = (clipRect.height > 0 ? Math.fceil(clipRect.bottom) - y : 0);
 			#if !openfl_dpi_aware
 			if (__context3D.__backBufferWantsBestResolution)
 			{
