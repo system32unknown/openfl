@@ -45,18 +45,18 @@ import lime._internal.graphics.ImageDataUtil; // TODO
 
 	public var knockout(get, set):Bool;
 
-	@:noCompletion private var __blurX:Float;
-	@:noCompletion private var __blurY:Float;
-	@:noCompletion private var __horizontalPasses:Int;
-	@:noCompletion private var __quality:Int;
-	@:noCompletion private var __verticalPasses:Int;
-	@:noCompletion private var __angle:Float;
-	@:noCompletion private var __distance:Float;
-	@:noCompletion private var __highlightColor:UInt;
-	@:noCompletion private var __highlightAlpha:Float;
-	@:noCompletion private var __shadowColor:UInt;
-	@:noCompletion private var __shadowAlpha:Float;
-	@:noCompletion private var __strength:Float;
+	@:noCompletion private var __blurX:Float = 0.0;
+	@:noCompletion private var __blurY:Float = 0.0;
+	@:noCompletion private var __horizontalPasses:Int = 0;
+	@:noCompletion private var __quality:Int = 0;
+	@:noCompletion private var __verticalPasses:Int = 0;
+	@:noCompletion private var __angle:Float = 0.0;
+	@:noCompletion private var __distance:Float = 0;
+	@:noCompletion private var __highlightColor:UInt = 0x808080;
+	@:noCompletion private var __highlightAlpha:Float = 0.0;
+	@:noCompletion private var __shadowColor:UInt = 0x808080;
+	@:noCompletion private var __shadowAlpha:Float = 0.0;
+	@:noCompletion private var __strength:Float = 0;
 	@:noCompletion private var __type:String;
 	@:noCompletion private var __knockout:Bool;
 
