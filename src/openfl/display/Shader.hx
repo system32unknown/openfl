@@ -336,50 +336,61 @@ class Shader
 		return shader;
 	}
 
-	private var __lineExtractor:EReg = ~/^\w+?: \d+:(\d+):(.+$)/;
+	/**
+	 * Retrieves the line number from a shader log line.
+	 */
+	@:noCompletion private var __lineExtractor = ~/^\w+?: \d+:(\d+):(.+$)/;
+
+	/**
+	 * Searches for strings that have only whitespace.
+	 *
+	 * **Note:** Searching for all whitespace via `~/^\s*$/` caused false-negatives,
+	 * notably: `String.fromCharCode(0)` is `false` but `\W` is `true`.
+	 */
+	@:noCompletion private var __isEmptyLine = ~/^\W*$/;
 
 	@:noCompletion private function __logGLShaderInfo(isError:Bool, type:Int, infoLog:String, source:String):Void
 	{
-		var message = isError ? "Error" : "Info";
-		var typeName = (type == __context.gl.VERTEX_SHADER) ? "vertex" : "fragment";
-		message += ' compiling $typeName shader';
-
+		var message = "";
 		var lines = source.split("\n");
-		var success = true;
-		var prettyLog = "";
+		var failingLine:String = null;
 		for (log in infoLog.split("\n"))
 		{
-			if (StringTools.trim(log) == "") continue;
+			// ignore empty lines
+			if (__isEmptyLine.match(log)) continue;
 
 			// look for a line number
 			if (!__lineExtractor.match(log))
 			{
-				// Could not find line numbers
-				success = false;
+				// Could not find expected info, abort pretty formatting
+				failingLine = log;
 				break;
 			}
 
-			var lineNumber = Std.parseInt(__lineExtractor.matched(1));
-			var info = StringTools.trim(__lineExtractor.matched(2));
-			// EOF errors will not have a valid line
-			if (lineNumber > lines.length)
+			var lineNumberStr = __lineExtractor.matched(1);
+			var lineNumber = Std.parseInt(lineNumberStr);
+			var info = __lineExtractor.matched(2);
+			if (lineNumber >= lines.length)
 			{
-				prettyLog += '\n\nLine $lineNumber: $info';
-				continue;
+				// EOF errors will not have a valid line
+				message += '\n\n $lineNumber | $info';
 			}
-
-			// Add the relevant line to each log
-			var line = StringTools.trim(lines[lineNumber - 1]);
-			prettyLog += '\n\nLine $lineNumber: $info\n\t$line';
+			else
+			{
+				// Add the relevant line to each log
+				var line = lines[lineNumber - 1];
+				var indent = StringTools.lpad("|", " ", lineNumberStr.length + 3);
+				message += '\n\n $lineNumber | $line\n$indent ${info}';
+			}
 		}
 
-		if (success) message += prettyLog;
-		else
-			message += "\nFailed to simplify log info, showing full source\n" + infoLog + "\n" + source;
+		// If we couldn't parse the logs, output the old, verbose format
+		if (failingLine != null) message = '\nFailed to simplify log:"$failingLine"\n$infoLog\n$source';
 
-		if (isError) Log.error(message);
+		var typeName = (type == __context.gl.VERTEX_SHADER) ? "vertex" : "fragment";
+		if (isError) Log.error('Error compiling $typeName shader $message');
 		else
-			Log.debug(message);
+			Log.debug('Info compiling $typeName shader $message');
 	}
 
 	@:noCompletion private function __createGLProgram(vertexSource:String, fragmentSource:String):GLProgram
