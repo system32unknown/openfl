@@ -2374,7 +2374,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		}
 
 		__setTransformDirty();
-		
+
 		if (value.__hasMatrix)
 		{
 			var other = value.__displayObject.__transform;
