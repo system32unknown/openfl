@@ -1,6 +1,6 @@
-package openfl.net._internal.win;
+package openfl.media._internal.win;
 
-import openfl.net._internal.VoidPointer;
+import openfl.media._internal.VoidPointer;
 
 /**
  * ...
