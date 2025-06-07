@@ -1988,31 +1988,14 @@ class File extends FileReference
 	#if windows
 	@:noCompletion private function __replaceWindowsEnvVars(path:String):String
 	{
-		// Define the regular expression to match the path component to be replaced
-		var pattern:EReg = ~/%(.+?)%/;
-
-		// Find the first match of the regular expression in the path
-		var match:Bool = pattern.match(path);
-
-		if (match)
+		// replace all environment variables wrapped in %VAR_NAME%
+		var pattern:EReg = ~/%([^%]+)%/g;
+		return pattern.map(path, function (p)
 		{
-			// Extract the matched path component
-			var matchedPath:String = pattern.matched(0);
-
-			// Get the environment variable name by removing the first and last characters ("%")
-			var envVar:String = matchedPath.substring(1, matchedPath.length - 1);
-
-			// Get the value of the environment variable
-			var envVarValue:Null<String> = Sys.getEnv(envVar);
-
-			if (envVarValue == null)
-			{
-				return path;
-			}
-			// Replace the matched path component with the environment variable value
-			return StringTools.replace(path, matchedPath, envVarValue);
-		}
-		return path;
+			var envVar = p.matched(1);
+			var value = Sys.getEnv(envVar);
+			return (value != null) ? value : p.matched(0);
+		});
 	}
 	#end
 
@@ -2198,9 +2181,22 @@ class File extends FileReference
 
 	@:noCompletion private function get_url():String
 	{
-		// TODO: url encode the native path to avoid invalid URL characters
-		// TODO: use app: and app-storage: protocols instead of file:, when path is relative to those directories
-		return "file:///" + nativePath;
+		// TODO: use app: and app-storage: protocols instead of file:, when path is relative to those directories		
+		var path = nativePath;
+		
+		#if windows
+		// convert to forward slashes for URLs
+		path = path.split("\\").join("/");
+		if (!StringTools.startsWith(path, "/")){
+			path = "/" + path;
+		}
+		#end
+			
+		var encoded = StringTools.urlEncode(path);
+		// keep path separators and drive colon unescaped
+		encoded = StringTools.replace(encoded, "%2F", "/");
+		encoded = StringTools.replace(encoded, "%3A", ":");
+		return "file://" + encoded;		
 	}
 
 	@:noCompletion private function get_exists():Bool
