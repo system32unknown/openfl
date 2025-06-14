@@ -782,8 +782,42 @@ class File extends FileReference
 		if (cPath == null)
 		{
 			// fall back to unix paths
-			cPath = __sep + segs[1] + __sep;
+			var firstSeg = segs[1];
+			if (firstSeg == "." || firstSeg == "..")
+			{
+				cPath = __sep;
+			}
+			else
+			{
+				cPath = __sep + segs[1] + __sep;
+			}
 			start = 2;
+		}
+
+		var i = segs.length - 1;
+		var dotDotStack = 0;
+		while (i >= start)
+		{
+			var seg = segs[i];
+			if (seg == ".")
+			{
+				segs.splice(i, 1);
+			}
+			else
+			{
+				var isDotDot = seg == "..";
+				if (dotDotStack > 0 && !isDotDot)
+				{
+					segs.splice(i, 1);
+					dotDotStack--;
+				}
+				else if (isDotDot)
+				{
+					segs.splice(i, 1);
+					dotDotStack++;
+				}
+			}
+			i--;
 		}
 
 		for (i in start...segs.length)
@@ -1990,7 +2024,7 @@ class File extends FileReference
 	{
 		// replace all environment variables wrapped in %VAR_NAME%
 		var pattern:EReg = ~/%([^%]+)%/g;
-		return pattern.map(path, function (p)
+		return pattern.map(path, function(p)
 		{
 			var envVar = p.matched(1);
 			var value = Sys.getEnv(envVar);
@@ -2181,22 +2215,23 @@ class File extends FileReference
 
 	@:noCompletion private function get_url():String
 	{
-		// TODO: use app: and app-storage: protocols instead of file:, when path is relative to those directories		
+		// TODO: use app: and app-storage: protocols instead of file:, when path is relative to those directories
 		var path = nativePath;
-		
+
 		#if windows
 		// convert to forward slashes for URLs
 		path = path.split("\\").join("/");
-		if (!StringTools.startsWith(path, "/")){
+		if (!StringTools.startsWith(path, "/"))
+		{
 			path = "/" + path;
 		}
 		#end
-			
+
 		var encoded = StringTools.urlEncode(path);
 		// keep path separators and drive colon unescaped
 		encoded = StringTools.replace(encoded, "%2F", "/");
 		encoded = StringTools.replace(encoded, "%3A", ":");
-		return "file://" + encoded;		
+		return "file://" + encoded;
 	}
 
 	@:noCompletion private function get_exists():Bool
