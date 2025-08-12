@@ -235,6 +235,7 @@ class BitmapData implements IBitmapDrawable
 	@:noCompletion private var __worldColorTransform:ColorTransform;
 	@:noCompletion private var __worldTransform:Matrix;
 	@:noCompletion private var __renderer:OpenGLRenderer;
+	@:noCompletion private var __asset:Bool;
 
 	/**
 		Creates a BitmapData object with a specified width and height. If you specify a value for
@@ -330,6 +331,7 @@ class BitmapData implements IBitmapDrawable
 		__worldTransform = new Matrix();
 		__worldColorTransform = new ColorTransform();
 		__renderable = true;
+		__asset = false;
 	}
 
 	/**
@@ -756,7 +758,12 @@ class BitmapData implements IBitmapDrawable
 	public function dispose():Void
 	{
 		#if (js && html5)
-		if (image != null && image.type == CANVAS)
+		// if this BitmapData was created with Assets.getBitmapData(), then
+		// don't destroy the underlying image buffer.
+		// on html5, images are loaded asynchronously, and cloning is too
+		// expensive, so Lime's asset manager reuses the same Image instance
+		// every time that you call Assets.getImage() with the same asset ID.
+		if (image != null && image.type == CANVAS && !__asset)
 		{
 			var canvas = image.buffer.__srcCanvas;
 			var context = image.buffer.__srcContext;
