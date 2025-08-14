@@ -2107,6 +2107,13 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			return value;
 		}
 
+		if (value != null && value.__maskTarget != null)
+		{
+			// a single mask cannot be applied to more than one display object,
+			// so if the new mask already has a target, remove the mask
+			value.__maskTarget.mask = null;
+		}
+
 		if (value != __mask)
 		{
 			__setTransformDirty();
@@ -2324,6 +2331,14 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		{
 			if (__scrollRect == null) __scrollRect = new Rectangle();
 			__scrollRect.copyFrom(value);
+			if (__scrollRect.width < 0.0)
+			{
+				__scrollRect.width = 0.0;
+			}
+			if (__scrollRect.height < 0.0)
+			{
+				__scrollRect.height = 0.0;
+			}
 		}
 		else
 		{
@@ -2337,7 +2352,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 			__setRenderDirty();
 		}
 
-		return value;
+		return __scrollRect;
 	}
 
 	@:noCompletion private function get_shader():Shader
