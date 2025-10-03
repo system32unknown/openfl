@@ -480,7 +480,7 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 							  and the shader specifies an image input that isn't
 							  provided.
 		@throws ArgumentError When `filters` includes a ShaderFilter, a
-							  ByteArray or Vector.<Number> instance as a shader
+							  ByteArray or Vector<Float> instance as a shader
 							  input, and the `width` and
 							  `height` properties aren't specified for
 							  the ShaderInput object, or the specified values
@@ -1457,6 +1457,18 @@ class DisplayObject extends EventDispatcher implements IBitmapDrawable #if (open
 		{
 			__cacheBitmapData.dispose();
 			__cacheBitmapData = null;
+		}
+
+		if (__cacheBitmapData2 != null)
+		{
+			__cacheBitmapData2.dispose();
+			__cacheBitmapData2 = null;
+		}
+
+		if (__cacheBitmapData3 != null)
+		{
+			__cacheBitmapData3.dispose();
+			__cacheBitmapData3 = null;
 		}
 	}
 
