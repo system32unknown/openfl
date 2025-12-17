@@ -11,15 +11,13 @@ package openfl.system;
 #end
 class Security
 {
-	#if false
 	/**
 		The file is running in an AIR application, and it was installed with
 		the package (the AIR file) for that application. This content is
 		included in the AIR application resource directory (where the
 		application content is installed).
 	**/
-	// @:noCompletion @:dox(hide) @:require(flash10_1) public static var APPLICATION:String;
-	#end
+	public static var APPLICATION:String = "application";
 
 	/**
 		The file is a local file and has been trusted by the user, using
@@ -92,20 +90,23 @@ class Security
 		later, set `Security.exactSettings` to `false` before calling
 		`SharedObject.getLocal()`.
 
+		_OpenFL target support:_ Changing this property in OpenFL has no effect.
+
 		@throws SecurityError An OpenFL application already used the value of
 							  `exactSettings` at least once in a decision about
 							  player settings.
 	**/
-	public static var exactSettings:Bool;
+	public static var exactSettings:Bool = true;
 
-	#if false
 	/**
-		Get the page domain containing the swf. For security reasons, the
-		method does not return the full URL, only the page domain, such as
-		http://www.example.com.
+		Get the page domain containing the SWF.
+
+		For security reasons, the method does not return the full URL, only the
+		page domain, such as `http://www.example.com`. If this SWF is not
+		contained in an HTML page, or cannot access the page domain for security
+		reasons, this property returns the string, `"undefined"`.
 	**/
-	// @:noCompletion @:dox(hide) @:require(flash11) public static var pageDomain (default, null):String;
-	#end
+	public static var pageDomain(get, null):String;
 
 	/**
 		Indicates the type of security sandbox in which the calling file is
@@ -137,7 +138,7 @@ class Security
 		For more information related to security, see the Flash Player
 		Developer Center Topic: [Security](http://www.adobe.com/go/devnet_security_en).
 	**/
-	public static var sandboxType(default, null):String;
+	public static var sandboxType(get, null):String;
 
 	/**
 		Lets SWF files in the identified domains access objects and variables
@@ -568,18 +569,49 @@ class Security
 		// var res = haxe.Http.requestUrl( url );
 	}
 
-	#if false
 	/**
 		Displays the Security Settings panel in Flash Player. This method does
 		not apply to content in Adobe AIR; calling it in an AIR application
 		has no effect.
 
+		_OpenFL target support:_ Similar to Adobe AIR, calling this method in
+		other OpenFL targets has no effect.
+
 		@param panel A value from the SecurityPanel class that specifies which
 					 Security Settings panel you want to display. If you omit
 					 this parameter, `SecurityPanel.DEFAULT` is used.
 	**/
-	// @:noCompletion @:dox(hide) public static function showSettings (panel:openfl.system.SecurityPanel = null):Void;
-	#end
+	public static function showSettings(panel:SecurityPanel = null):Void
+	{
+		// similar to AIR, does nothing
+	}
+
+	private static function get_pageDomain():String
+	{
+		#if (js && html5)
+		var jsWindow = cast(js.Lib.global, js.html.Window);
+		return jsWindow.location.origin;
+		#else
+		return "undefined";
+		#end
+	}
+
+	private static function get_sandboxType():String
+	{
+		#if (js && html5)
+		var jsWindow = cast(js.Lib.global, js.html.Window);
+		if (jsWindow.location.protocol == "file:")
+		{
+			// it isn't necessarily exactly equivalent to Flash's localWithFile.
+			// however, it seems like a decently closest option to indicate that
+			// there are reduced permissions when using the file: protocol.
+			return Security.LOCAL_WITH_FILE;
+		}
+		return Security.REMOTE;
+		#else
+		return Security.APPLICATION;
+		#end
+	}
 }
 #else
 typedef Security = flash.system.Security;
