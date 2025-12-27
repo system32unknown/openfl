@@ -36,6 +36,7 @@ import openfl.errors.TypeError;
 	@:noCompletion private var __id:GLBuffer;
 	@:noCompletion private var __memoryUsage:Int;
 	@:noCompletion private var __numIndices:Int;
+	@:noCompletion private var __tempUInt16Array:UInt16Array;
 	@:noCompletion private var __usage:Int;
 	@:noCompletion private var __format:Context3DIndexBufferFormat;
 
