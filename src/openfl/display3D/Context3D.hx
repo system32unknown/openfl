@@ -282,6 +282,7 @@ import lime.math.Vector2;
 	@:noCompletion private var __stage3D:Stage3D;
 	@:noCompletion private var __state:Context3DState;
 	@:noCompletion private var __vertexConstants:Float32Array;
+	@:noCompletion private var __usingComplexBlend:Bool;
 
 	@:noCompletion private function new(stage:Stage, contextState:Context3DState = null, stage3D:Stage3D = null)
 	{
@@ -2801,11 +2802,6 @@ import lime.math.Vector2;
 			}
 			__contextState.__enableGLStencilTest = enable;
 		}
-	}
-
-	@:noCompletion private inline function __glBlendBarrier():Void
-	{
-		gl.blendBarrier();
 	}
 
 	// Get & Set Methods
