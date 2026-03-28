@@ -252,52 +252,46 @@ class CanvasRenderer extends DisplayObjectRenderer
 		{
 			case ADD:
 				context.globalCompositeOperation = "lighter";
-
-			// case ALPHA:
-
-			// 	context.globalCompositeOperation = "";
-
+			case ALPHA:
+				context.globalCompositeOperation = "destination-in";
 			case DARKEN:
 				context.globalCompositeOperation = "darken";
-
 			case DIFFERENCE:
 				context.globalCompositeOperation = "difference";
-
-			// case ERASE:
-
-			// context.globalCompositeOperation = "";
-
+			case ERASE:
+				context.globalCompositeOperation = "xor";
 			case HARDLIGHT:
 				context.globalCompositeOperation = "hard-light";
-
-			// case INVERT:
-
-			// context.globalCompositeOperation = "";
-
-			// case LAYER:
-
-			// 	context.globalCompositeOperation = "source-over";
-
+			case INVERT:
+				context.globalCompositeOperation = "hard-light";
+			case LAYER:
+				context.globalCompositeOperation = "source-in";
 			case LIGHTEN:
 				context.globalCompositeOperation = "lighten";
-
 			case MULTIPLY:
 				context.globalCompositeOperation = "multiply";
-
 			case OVERLAY:
 				context.globalCompositeOperation = "overlay";
-
 			case SCREEN:
 				context.globalCompositeOperation = "screen";
-
-			// case SHADER:
-
-			// context.globalCompositeOperation = "";
-
-			// case SUBTRACT:
-
-			// context.globalCompositeOperation = "";
-
+			case SUBTRACT:
+				context.globalCompositeOperation = "source-out";
+			case COLORDODGE:
+				context.globalCompositeOperation = "color-dodge";
+			case COLORBURN:
+				context.globalCompositeOperation = "color-burn";
+			case SOFTLIGHT:
+				context.globalCompositeOperation = "soft-light";
+			case EXCLUSION:
+				context.globalCompositeOperation = "exclusion";
+			case HUE:
+				context.globalCompositeOperation = "hue";
+			case SATURATION:
+				context.globalCompositeOperation = "saturation";
+			case COLOR:
+				context.globalCompositeOperation = "color";
+			case LUMINOSITY:
+				context.globalCompositeOperation = "luminosity";
 			default:
 				context.globalCompositeOperation = "source-over";
 		}

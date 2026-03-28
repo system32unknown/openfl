@@ -1381,9 +1381,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 				#if openfl_dpi_aware
 				context3D.configureBackBuffer(windowWidth, windowHeight, 0, true, true, true);
 				#else
-				var unscaledWindowWidth = Std.int(window.width);
-				var unscaledWindowHeight = Std.int(window.height);
-				context3D.configureBackBuffer(unscaledWindowWidth, unscaledWindowHeight, 0, true, true, true);
+				context3D.configureBackBuffer(stageWidth, stageHeight, 0, true, true, true);
 				#end
 				context3D.present();
 				__renderer = new OpenGLRenderer(context3D);
@@ -1409,6 +1407,8 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 
 		if (__renderer != null)
 		{
+			__renderer.__clear();
+
 			__renderer.__allowSmoothing = (quality != LOW);
 			__renderer.__pixelRatio = #if openfl_disable_hdpi 1 #else window.scale #end;
 			__renderer.__worldTransform = __displayMatrix;
@@ -1978,17 +1978,65 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 							case Keyboard.C:
 								// flash docs say that bubbles and cancelable
 								// are false, but they're actually true
+								#if openfl_pool_events
+								var copyEvent = Event.__pool.get();
+								copyEvent.type = Event.COPY;
+								copyEvent.bubbles = true;
+								copyEvent.cancelable = true;
+								#else
 								var copyEvent = new Event(Event.COPY, true, true);
+								#end
+
 								focus.dispatchEvent(copyEvent);
+
+								#if openfl_pool_events
+								Event.__pool.release(copyEvent);
+								#end
 							case Keyboard.X:
+								#if openfl_pool_events
+								var cutEvent = Event.__pool.get();
+								cutEvent.type = Event.CUT;
+								cutEvent.bubbles = true;
+								cutEvent.cancelable = true;
+								#else
 								var cutEvent = new Event(Event.CUT, true, true);
+								#end
+
 								focus.dispatchEvent(cutEvent);
+
+								#if openfl_pool_events
+								Event.__pool.release(cutEvent);
+								#end
 							case Keyboard.V:
+								#if openfl_pool_events
+								var pasteEvent = Event.__pool.get();
+								pasteEvent.type = Event.PASTE;
+								pasteEvent.bubbles = true;
+								pasteEvent.cancelable = true;
+								#else
 								var pasteEvent = new Event(Event.PASTE, true, true);
+								#end
+
 								focus.dispatchEvent(pasteEvent);
+
+								#if openfl_pool_events
+								Event.__pool.release(pasteEvent);
+								#end
 							case Keyboard.A:
+								#if openfl_pool_events
+								var selectAllEvent = Event.__pool.get();
+								selectAllEvent.type = Event.SELECT_ALL;
+								selectAllEvent.bubbles = true;
+								selectAllEvent.cancelable = true;
+								#else
 								var selectAllEvent = new Event(Event.SELECT_ALL, true, true);
+								#end
+
 								focus.dispatchEvent(selectAllEvent);
+
+								#if openfl_pool_events
+								Event.__pool.release(selectAllEvent);
+								#end
 						}
 					}
 				}
@@ -2436,7 +2484,23 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		#end
 
 		__renderable = true;
-		__enterFrame(__deltaTime);
+
+		if (__uncaughtErrorEvents.__enabled)
+		{
+			try
+			{
+				__enterFrame(__deltaTime);
+			}
+			catch (e:Dynamic)
+			{
+				__handleError(e);
+			}
+		}
+		else
+		{
+			__enterFrame(__deltaTime);
+		}
+
 		__deltaTime = 0;
 
 		var cancelled = __render(context);
@@ -3552,13 +3616,6 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 		var visibleY = 0.0;
 		switch (align)
 		{
-			case null:
-				// it is undocumented, but it is possible to align the stage in
-				// Flash to the center both horizontally and vertically by
-				// setting stage.align to an invalid value, such as an empty
-				// string ("")
-				visibleX = Math.round((__logicalWidth - visibleWidth) / 2);
-				visibleY = Math.round((__logicalHeight - visibleHeight) / 2);
 			case BOTTOM_RIGHT:
 				visibleX = Math.round(__logicalWidth - visibleWidth);
 				visibleY = Math.round(__logicalHeight - visibleHeight);
@@ -3666,9 +3723,7 @@ class Stage extends DisplayObjectContainer #if lime implements IModule #end
 			#if openfl_dpi_aware
 			context3D.configureBackBuffer(windowWidth, windowHeight, 0, true, true, true);
 			#else
-			var unscaledWindowWidth = Std.int(window.width);
-			var unscaledWindowHeight = Std.int(window.height);
-			context3D.configureBackBuffer(unscaledWindowWidth, unscaledWindowHeight, 0, true, true, true);
+			context3D.configureBackBuffer(stageWidth, stageHeight, 0, true, true, true);
 			#end
 		}
 

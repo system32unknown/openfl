@@ -4,14 +4,15 @@ import openfl.display3D.Context3DWrapMode;
 import openfl.display3D.Context3DMipFilter;
 import openfl.display3D.Context3DTextureFilter;
 #if !flash
-import openfl.display3D._internal.GLProgram;
-import openfl.display3D._internal.GLShader;
 import openfl.display._internal.ShaderBuffer;
-import openfl.utils._internal.Float32Array;
-import openfl.utils._internal.Log;
 import openfl.display3D.Context3D;
 import openfl.display3D.Program3D;
+import openfl.display3D._internal.GLProgram;
+import openfl.display3D._internal.GLShader;
 import openfl.utils.ByteArray;
+import openfl.utils._internal.Float32Array;
+import openfl.utils._internal.Log;
+import openfl.Lib;
 
 /**
 	// TODO: Document GLSL Shaders
@@ -146,6 +147,43 @@ class Shader
 	public var data(get, set):ShaderData;
 
 	/**
+		Get or set the GLSL version used in the header when compiling with GLSL.
+
+		- `120` is required for initialization (i.e. providing a default value for) `uniform` variables
+		@default The default value is determined at compile time.
+	**/
+	public var glVersion(get, set):String;
+
+	/**
+		Provides additional `#extension` directives to insert in the vertex and fragment shaders.
+
+		Example:
+		```
+		@:glExtensions([{name: "OES_standard_derivatives", behavior: "require"}])
+		@:glVertexExtensions([{name: "OES_standard_derivatives", behavior: "require"}])
+		@:glFragmentExtensions([{name: "OES_standard_derivatives", behavior: "require"}])
+		```
+	**/
+	public var glVertexExtensions(get, set):Array<{name:String, behavior:String}>;
+
+	public var glFragmentExtensions(get, set):Array<{name:String, behavior:String}>;
+
+	/**
+		The default GLSL vertex header, before being applied to the vertex source.
+	**/
+	public var glFragmentHeaderRaw(get, null):String;
+
+	/**
+		The default GLSL vertex body, before being applied to the vertex source.
+	**/
+	public var glFragmentBodyRaw(get, null):String;
+
+	/**
+		The default GLSL fragment source, before `#pragma` values are replaced.
+	**/
+	public var glFragmentSourceRaw(get, null):String;
+
+	/**
 		Get or set the fragment source used when compiling with GLSL.
 
 		This property is not available on the Flash target.
@@ -158,6 +196,21 @@ class Shader
 		This property is not available on the Flash target.
 	**/
 	@SuppressWarnings("checkstyle:Dynamic") public var glProgram(default, null):GLProgram;
+
+	/**
+		The default GLSL vertex header, before being applied to the vertex source.
+	**/
+	public var glVertexHeaderRaw(get, null):String;
+
+	/**
+		The default GLSL vertex body, before being applied to the vertex source.
+	**/
+	public var glVertexBodyRaw(get, null):String;
+
+	/**
+		The default GLSL vertex source, before `#pragma` values are replaced.
+	**/
+	public var glVertexSourceRaw(get, null):String;
 
 	/**
 		Get or set the vertex source used when compiling with GLSL.
@@ -220,8 +273,17 @@ class Shader
 	@:noCompletion private var __colorOffset:ShaderParameter<Float>;
 	@:noCompletion private var __context:Context3D;
 	@:noCompletion private var __data:ShaderData;
+	@:noCompletion private var __glVertexExtensions:Array<{name:String, behavior:String}>;
+	@:noCompletion private var __glFragmentExtensions:Array<{name:String, behavior:String}>;
+	@:noCompletion private var __glVersion:String;
+	@:noCompletion private var __glFragmentHeaderRaw:String;
+	@:noCompletion private var __glFragmentBodyRaw:String;
+	@:noCompletion private var __glFragmentSourceRaw:String;
 	@:noCompletion private var __glFragmentSource:String;
 	@:noCompletion private var __glSourceDirty:Bool;
+	@:noCompletion private var __glVertexHeaderRaw:String;
+	@:noCompletion private var __glVertexBodyRaw:String;
+	@:noCompletion private var __glVertexSourceRaw:String;
 	@:noCompletion private var __glVertexSource:String;
 	@:noCompletion private var __hasColorTransform:ShaderParameter<Bool>;
 	@:noCompletion private var __inputBitmapData:Array<ShaderInput<BitmapData>>;
@@ -244,9 +306,39 @@ class Shader
 				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_data (); }"),
 				set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_data (v); }")
 			},
+			"glVertexExtensions": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVertexExtensions (); }"),
+				set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_glVertexExtensions (v); }")
+			},
+			"glFragmentExtensions": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glFragmentExtensions (); }"),
+				set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_glFragmentExtensions (v); }")
+			},
+			"glVersion": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVersion (); }"),
+				set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_glVersion (v); }")
+			},
+			"glFragmentHeaderRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glFragmentHeaderRaw (); }"),
+			},
+			"glFragmentBodyRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glFragmentBodyRaw (); }"),
+			},
+			"glFragmentSourceRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glFragmentSourceRaw (); }"),
+			},
 			"glFragmentSource": {
 				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glFragmentSource (); }"),
 				set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_glFragmentSource (v); }")
+			},
+			"glVertexHeaderRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVertexHeaderRaw (); }"),
+			},
+			"glVertexBodyRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVertexBodyRaw (); }"),
+			},
+			"glVertexSourceRaw": {
+				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVertexSourceRaw (); }"),
 			},
 			"glVertexSource": {
 				get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_glVertexSource (); }"),
@@ -341,7 +433,13 @@ class Shader
 	/**
 	 * Retrieves the line number from a shader log line.
 	 */
+	#if windows
+	// 0(5) : whatever
+	@:noCompletion private var __lineExtractor = ~/^\d+\((\d+)\) : (.+$)/;
+	#else // (html5 || macos || linux)
+	// ERROR: 0:5:whatever
 	@:noCompletion private var __lineExtractor = ~/^\w+?: \d+:(\d+):(.+$)/;
+	#end
 
 	/**
 	 * Searches for strings that have only whitespace.
@@ -517,6 +615,72 @@ class Shader
 		}
 	}
 
+	@:noCompletion private function __buildSourcePrefix(isFragment:Bool):String
+	{
+		var extensions = "";
+
+		var extList = (isFragment ? __glFragmentExtensions : __glVertexExtensions);
+
+		for (ext in extList)
+		{
+			extensions += "#extension " + ext.name + " : " + ext.behavior + "\n";
+		}
+
+		var complexBlendsSupported = OpenGLRenderer.__complexBlendsSupported && isFragment;
+
+		#if lime
+		if (__context.__context.type == OPENGL)
+		{
+			complexBlendsSupported = complexBlendsSupported && (__glVersion == "150" || !StringTools.startsWith(__glVersion, "1"));
+		}
+		else if (__context.__context.type == OPENGLES)
+		{
+			complexBlendsSupported = complexBlendsSupported && !StringTools.startsWith(__glVersion, "1");
+		}
+		#end
+
+		if (complexBlendsSupported)
+		{
+			extensions += "#extension GL_KHR_blend_equation_advanced : enable\n";
+
+			#if lime
+			if (__context.__context.type == OPENGL)
+			{
+				// compiling without this gives the error
+				// 'gl_SampleID' : required extension not requested: GL_ARB_sample_shading
+				extensions += "#extension GL_ARB_sample_shading : enable\n";
+			}
+			#end
+		}
+
+		// #version must be the first directive and cannot be repeated,
+		// while #extension directives must be before any non-preprocessor tokens.
+
+		var prefix = "#version "
+			+ __glVersion
+			+ "
+      "
+			+ extensions
+			+ "
+				#ifdef GL_ES
+				"
+			+ (precisionHint == FULL ? "#ifdef GL_FRAGMENT_PRECISION_HIGH
+					precision highp float;
+				#else
+					precision mediump float;
+				#endif" : "precision lowp float;")
+			+ "
+				#endif
+				";
+
+		if (complexBlendsSupported)
+		{
+			prefix += "#ifdef GL_KHR_blend_equation_advanced\nlayout (blend_support_all_equations) out;\n#endif\n";
+		}
+
+		return prefix;
+	}
+
 	@:noCompletion private function __initGL():Void
 	{
 		if (__glSourceDirty || __paramBool == null)
@@ -530,6 +694,7 @@ class Shader
 			__paramInt = new Array();
 
 			__processGLData(glVertexSource, "attribute");
+			__processGLData(glVertexSource, "in");
 			__processGLData(glVertexSource, "uniform");
 			__processGLData(glFragmentSource, "uniform");
 		}
@@ -538,20 +703,8 @@ class Shader
 		{
 			var gl = __context.gl;
 
-			#if (js && html5)
-			var prefix = (precisionHint == FULL ? "precision mediump float;\n" : "precision lowp float;\n");
-			#else
-			var prefix = "#ifdef GL_ES\n"
-				+ (precisionHint == FULL ? "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-					+ "precision highp float;\n"
-					+ "#else\n"
-					+ "precision mediump float;\n"
-					+ "#endif\n" : "precision lowp float;\n")
-				+ "#endif\n\n";
-			#end
-
-			var vertex = prefix + glVertexSource;
-			var fragment = prefix + glFragmentSource;
+			var vertex = __buildSourcePrefix(false) + glVertexSource;
+			var fragment = __buildSourcePrefix(true) + glFragmentSource;
 
 			var id = vertex + fragment;
 
@@ -565,6 +718,7 @@ class Shader
 
 				// TODO
 				// program.uploadSources (vertex, fragment);
+
 				if (Lib.current.stage.__uncaughtErrorEvents.__enabled)
 				{
 					try
@@ -574,6 +728,8 @@ class Shader
 					catch (e:Dynamic)
 					{
 						Lib.current.stage.__handleError(e);
+
+						program.__glProgram = null;
 					}
 				}
 				else
@@ -639,16 +795,22 @@ class Shader
 
 	@:noCompletion private function __processGLData(source:String, storageType:String):Void
 	{
-		var lastMatch = 0, position, regex, name, type;
+		var position, name, type, regex;
 
 		if (storageType == "uniform")
 		{
 			regex = ~/uniform ([A-Za-z0-9]+) ([A-Za-z0-9_]+)/;
 		}
+		else if (storageType == "in")
+		{
+			regex = ~/in ([A-Za-z0-9]+) ([A-Za-z0-9_]+)/;
+		}
 		else
 		{
 			regex = ~/attribute ([A-Za-z0-9]+) ([A-Za-z0-9_]+)/;
 		}
+
+		var lastMatch = 0;
 
 		while (regex.matchSub(source, lastMatch))
 		{
@@ -679,9 +841,11 @@ class Shader
 				}
 
 				Reflect.setField(__data, name, input);
+
 				try
 				{
 					if (__isGenerated) Reflect.setField(this, name, input);
+					if (__isGenerated && thisHasField(name)) Reflect.setProperty(this, name, input);
 				}
 				catch (e:Dynamic)
 				{
@@ -752,9 +916,11 @@ class Shader
 						}
 
 						Reflect.setField(__data, name, parameter);
+
 						try
 						{
 							if (__isGenerated) Reflect.setField(this, name, parameter);
+							if (__isGenerated && thisHasField(name)) Reflect.setProperty(this, name, parameter);
 						}
 						catch (e:Dynamic)
 						{
@@ -772,15 +938,16 @@ class Shader
 						__paramInt.push(parameter);
 
 						Reflect.setField(__data, name, parameter);
+
 						try
 						{
 							if (__isGenerated) Reflect.setField(this, name, parameter);
+							if (__isGenerated && thisHasField(name)) Reflect.setProperty(this, name, parameter);
 						}
 						catch (e:Dynamic)
 						{
 							Log.debug('Failed to set field $name: $e');
 						}
-
 					default:
 						var parameter = new ShaderParameter<Float>();
 						parameter.name = name;
@@ -810,9 +977,11 @@ class Shader
 						}
 
 						Reflect.setField(__data, name, parameter);
+
 						try
 						{
 							if (__isGenerated) Reflect.setField(this, name, parameter);
+							if (__isGenerated && thisHasField(name)) Reflect.setProperty(this, name, parameter);
 						}
 						catch (e:Dynamic)
 						{
@@ -1027,9 +1196,39 @@ class Shader
 		return __data = cast value;
 	}
 
+	@:noCompletion private function get_glFragmentHeaderRaw():String
+	{
+		return __glFragmentHeaderRaw;
+	}
+
+	@:noCompletion private function get_glFragmentBodyRaw():String
+	{
+		return __glFragmentBodyRaw;
+	}
+
+	@:noCompletion private function get_glFragmentSourceRaw():String
+	{
+		return __glFragmentSourceRaw;
+	}
+
 	@:noCompletion private function get_glFragmentSource():String
 	{
 		return __glFragmentSource;
+	}
+
+	@:noCompletion private function get_glVersion():String
+	{
+		return __glVersion;
+	}
+
+	@:noCompletion private function get_glVertexExtensions():Array<{name:String, behavior:String}>
+	{
+		return __glVertexExtensions;
+	}
+
+	@:noCompletion private function get_glFragmentExtensions():Array<{name:String, behavior:String}>
+	{
+		return __glFragmentExtensions;
 	}
 
 	@:noCompletion private function set_glFragmentSource(value:String):String
@@ -1040,6 +1239,51 @@ class Shader
 		}
 
 		return __glFragmentSource = value;
+	}
+
+	@:noCompletion private function set_glVersion(value:String):String
+	{
+		if (value != __glVersion)
+		{
+			__glSourceDirty = true;
+		}
+
+		return __glVersion = value;
+	}
+
+	@:noCompletion private function set_glVertexExtensions(value:Array<{name:String, behavior:String}>):Array<{name:String, behavior:String}>
+	{
+		if (value != __glVertexExtensions)
+		{
+			__glSourceDirty = true;
+		}
+
+		return __glVertexExtensions = value;
+	}
+
+	@:noCompletion private function set_glFragmentExtensions(value:Array<{name:String, behavior:String}>):Array<{name:String, behavior:String}>
+	{
+		if (value != __glFragmentExtensions)
+		{
+			__glSourceDirty = true;
+		}
+
+		return __glFragmentExtensions = value;
+	}
+
+	@:noCompletion private function get_glVertexHeaderRaw():String
+	{
+		return __glVertexHeaderRaw;
+	}
+
+	@:noCompletion private function get_glVertexBodyRaw():String
+	{
+		return __glVertexBodyRaw;
+	}
+
+	@:noCompletion private function get_glVertexSourceRaw():String
+	{
+		return __glVertexSourceRaw;
 	}
 
 	@:noCompletion private function get_glVertexSource():String
@@ -1055,6 +1299,18 @@ class Shader
 		}
 
 		return __glVertexSource = value;
+	}
+
+	private var __fieldList:Array<String> = null;
+
+	private function thisHasField(name:String)
+	{
+		// Reflect.hasField(this, name) is REALLY expensive so we cache the result.
+		if (__fieldList == null)
+		{
+			__fieldList = Reflect.fields(this).concat(Type.getInstanceFields(Type.getClass(this)));
+		}
+		return __fieldList.indexOf(name) != -1;
 	}
 }
 #else

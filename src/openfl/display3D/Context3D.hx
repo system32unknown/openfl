@@ -25,6 +25,7 @@ import openfl.utils._internal.UInt16Array;
 import openfl.utils._internal.UInt8Array;
 import openfl.utils.AGALMiniAssembler;
 import openfl.utils.ByteArray;
+import openfl.display.OpenGLRenderer;
 #if lime
 import lime.graphics.opengl.GL;
 import lime.graphics.Image;
@@ -781,7 +782,6 @@ import lime.math.Vector2;
 		@param	bufferUsage	the expected buffer usage. Use one of the constants defined
 		in Context3DBufferUsage. The hardware driver can do appropriate optimization
 		when you set it correctly. This parameter is only available after Flash 12/AIR 4.
-		@param  bufferFormat the data format to be used in the buffer.
 		@return	A new IndexBuffer3D object
 		@throws	Error	Object Disposed: if this Context3D object has been disposed by a
 		calling `dispose()` or because the underlying rendering hardware has been lost.
@@ -791,10 +791,9 @@ import lime.math.Vector2;
 		@throws	ArgumentError	Buffer Too Big: when `numIndices` is greater than or equal
 		to 0xf0000.
 	**/
-	public function createIndexBuffer(numIndices:Int, bufferUsage:Context3DBufferUsage = STATIC_DRAW,
-			bufferFormat:Context3DIndexBufferFormat = UINT16):IndexBuffer3D
+	public function createIndexBuffer(numIndices:Int, bufferUsage:Context3DBufferUsage = STATIC_DRAW):IndexBuffer3D
 	{
-		return new IndexBuffer3D(this, numIndices, bufferUsage, bufferFormat);
+		return new IndexBuffer3D(this, numIndices, bufferUsage);
 	}
 
 	/**
@@ -1252,16 +1251,17 @@ import lime.math.Vector2;
 		var count = (numTriangles == -1) ? indexBuffer.__numIndices : (numTriangles * 3);
 
 		__bindGLElementArrayBuffer(indexBuffer.__id);
-		switch indexBuffer.__format
+
+		if (OpenGLRenderer.__coherentBlendsSupported)
 		{
-			case UINT8:
-				gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_BYTE, firstIndex);
+			gl.enable(0x9285); // BLEND_ADVANCED_COHERENT_KHR
+		}
 
-			case UINT16:
-				gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, firstIndex * 2);
+		gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, firstIndex * 2);
 
-			case UINT32:
-				gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, firstIndex * 4);
+		if (OpenGLRenderer.__coherentBlendsSupported)
+		{
+			gl.disable(0x9285); // BLEND_ADVANCED_COHERENT_KHR
 		}
 	}
 
@@ -2129,7 +2129,17 @@ import lime.math.Vector2;
 			__state.program.__flush();
 		}
 
+		if (OpenGLRenderer.__coherentBlendsSupported)
+		{
+			gl.enable(0x9285); // BLEND_ADVANCED_COHERENT_KHR
+		}
+
 		gl.drawArrays(gl.TRIANGLES, firstIndex, count);
+
+		if (OpenGLRenderer.__coherentBlendsSupported)
+		{
+			gl.disable(0x9285); // BLEND_ADVANCED_COHERENT_KHR
+		}
 	}
 
 	@:noCompletion private function __flushGL():Void
@@ -2460,9 +2470,12 @@ import lime.math.Vector2;
 					__bindGLTextureCubeMap(texture.__getTexture());
 				}
 
-				#if (desktop && !html5)
-				// TODO: Cache?
-				gl.enable(gl.TEXTURE_2D);
+				#if lime
+				if (__context.type == OPENGL)
+				{
+					// TODO: Cache?
+					gl.enable(gl.TEXTURE_2D);
+				}
 				#end
 
 				__contextState.textures[i] = texture;
@@ -2494,9 +2507,12 @@ import lime.math.Vector2;
 					texture.__alphaTexture.__setSamplerState(samplerState);
 					gl.uniform1i(__state.program.__agalAlphaSamplerEnabled[sampler].location, 1);
 
-					#if (desktop && !html5)
-					// TODO: Cache?
-					gl.enable(gl.TEXTURE_2D);
+					#if lime
+					if (__context.type == OPENGL)
+					{
+						// TODO: Cache?
+						gl.enable(gl.TEXTURE_2D);
+					}
 					#end
 				}
 				else
@@ -2785,6 +2801,11 @@ import lime.math.Vector2;
 			}
 			__contextState.__enableGLStencilTest = enable;
 		}
+	}
+
+	@:noCompletion private inline function __glBlendBarrier():Void
+	{
+		gl.blendBarrier();
 	}
 
 	// Get & Set Methods
