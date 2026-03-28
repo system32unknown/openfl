@@ -57,7 +57,7 @@ class ShaderMacro
 
 			params += "\n\n if you want to use the `Header` or `Body` code block inside your source, you will need to instance `#pragma header` or `#pragma body` respectively to inject the code inside the source code";
 
-			Compiler.registerCustomMetadata({
+			haxe.macro.Compiler.registerCustomMetadata({
 				metadata: ':gl$fr$t',
 				doc: 'Sets the ${fr.toLowerCase()} ${(t == "Source") ? "shader" : t.toLowerCase() + " pragma code"} of the class',
 				targets: [Expr],
