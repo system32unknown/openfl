@@ -80,10 +80,20 @@ class Font #if lime extends LimeFont #end
 		if (enumerateDeviceFonts)
 		{
 			var _allFonts = __registeredFonts.copy();
-			var files = sys.FileSystem.readDirectory(lime.system.System.fontsDirectory);
-			for (file in files)
+			if (sys.FileSystem.exists(lime.system.System.fontsDirectory))
 			{
-				if (file.toLowerCase().indexOf('.ttf') != -1) _allFonts.push(fromFile(lime.system.System.fontsDirectory + file));
+				var files = sys.FileSystem.readDirectory(lime.system.System.fontsDirectory);
+				for (file in files)
+				{
+					if (file.toLowerCase().indexOf('.ttf') != -1)
+					{
+						var font = fromFile(lime.system.System.fontsDirectory + file);
+						if (font != null)
+						{
+							_allFonts.push(font);
+						}
+					}
+				}
 			}
 
 			// Automatically installed fonts are stored per user basis in an alternative location found
@@ -93,10 +103,17 @@ class Font #if lime extends LimeFont #end
 			var alternateFontsDirectory = '${Sys.getEnv("LocalAppData")}\\Microsoft\\Windows\\Fonts';
 			if (sys.FileSystem.exists(alternateFontsDirectory))
 			{
-				files = sys.FileSystem.readDirectory(alternateFontsDirectory);
+				var files = sys.FileSystem.readDirectory(alternateFontsDirectory);
 				for (file in files)
 				{
-					if (file.toLowerCase().indexOf('.ttf') != -1) _allFonts.push(fromFile(alternateFontsDirectory + file));
+					if (file.toLowerCase().indexOf('.ttf') != -1)
+					{
+						var font = fromFile(alternateFontsDirectory + "\\" + file);
+						if (font != null)
+						{
+							_allFonts.push(font);
+						}
+					}
 				}
 			}
 			#end
