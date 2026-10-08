@@ -261,6 +261,7 @@ import lime.math.Vector2;
 	@:noCompletion private static var __glTextureMaxAnisotropy:Int = -1;
 
 	@:noCompletion private var gl:#if lime WebGLRenderContext #else Dynamic #end;
+	@:noCompletion private var __backBufferPixelRatio:Float;
 	@:noCompletion private var __backBufferAntiAlias:Int;
 	@:noCompletion private var __backBufferTexture:RectangleTexture;
 	@:noCompletion private var __backBufferWantsBestResolution:Bool;
@@ -291,6 +292,7 @@ import lime.math.Vector2;
 		__stage = stage;
 		__contextState = contextState;
 		__stage3D = stage3D;
+		__backBufferPixelRatio = 0;
 
 		__context = stage.window.context;
 		#if (js && html5 && dom)
@@ -595,11 +597,12 @@ import lime.math.Vector2;
 	public function configureBackBuffer(width:Int, height:Int, antiAlias:Int, enableDepthAndStencil:Bool = true, wantsBestResolution:Bool = false,
 			wantsBestResolutionOnBrowserZoom:Bool = false):Void
 	{
+		var pixelRatio = __stage.window.scale;
 		#if !openfl_dpi_aware
 		if (wantsBestResolution)
 		{
-			width = Std.int(width * __stage.window.scale);
-			height = Std.int(height * __stage.window.scale);
+			width = Std.int(width * pixelRatio);
+			height = Std.int(height * pixelRatio);
 		}
 		#end
 
@@ -608,6 +611,7 @@ import lime.math.Vector2;
 			backBufferWidth = width;
 			backBufferHeight = height;
 
+			__backBufferPixelRatio = pixelRatio;
 			__backBufferAntiAlias = antiAlias;
 			__state.backBufferEnableDepthAndStencil = enableDepthAndStencil;
 			__backBufferWantsBestResolution = wantsBestResolution;
@@ -615,7 +619,7 @@ import lime.math.Vector2;
 		}
 		else
 		{
-			if (__backBufferTexture == null || backBufferWidth != width || backBufferHeight != height)
+			if (__backBufferTexture == null || backBufferWidth != width || backBufferHeight != height || __backBufferPixelRatio != pixelRatio)
 			{
 				if (__backBufferTexture != null) __backBufferTexture.dispose();
 				if (__frontBufferTexture != null) __frontBufferTexture.dispose();
@@ -632,8 +636,8 @@ import lime.math.Vector2;
 				var scaledWidth = width;
 				var scaledHeight = height;
 				#else
-				var scaledWidth = wantsBestResolution ? width : Std.int(width * __stage.window.scale);
-				var scaledHeight = wantsBestResolution ? height : Std.int(height * __stage.window.scale);
+				var scaledWidth = wantsBestResolution ? width : Std.int(width * pixelRatio);
+				var scaledHeight = wantsBestResolution ? height : Std.int(height * pixelRatio);
 				#end
 				var vertexData:Array<Float> = [
 					scaledWidth,
@@ -673,6 +677,7 @@ import lime.math.Vector2;
 			backBufferWidth = width;
 			backBufferHeight = height;
 
+			__backBufferPixelRatio = pixelRatio;
 			__backBufferAntiAlias = antiAlias;
 			__state.backBufferEnableDepthAndStencil = enableDepthAndStencil;
 			__backBufferWantsBestResolution = wantsBestResolution;
