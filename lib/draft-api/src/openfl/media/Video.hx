@@ -309,7 +309,7 @@ class Video extends DisplayObject
 	**/
 	public function clear():Void {}
 
-	@:noCompletion private override function __enterFrame(deltaTime:Int):Void
+	@:noCompletion private override function __enterFrame(deltaTime:Float):Void
 	{
 		#if (js && html5)
 		if (__renderable && __stream != null)
