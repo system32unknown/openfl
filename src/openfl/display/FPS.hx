@@ -59,9 +59,8 @@ class FPS extends TextField
 	}
 
 	// Event Handlers
-
 	@:noCompletion
-	private override function __enterFrame(deltaTime:Float):Void
+	private #if !flash override #end function __enterFrame(deltaTime:Float):Void
 	{
 		currentTime += deltaTime;
 		times.push(currentTime);
@@ -74,22 +73,20 @@ class FPS extends TextField
 		var currentCount = times.length;
 		currentFPS = Std.int((currentCount + cacheCount) / 2);
 
-		if (currentCount != cacheCount /*&& visible*/)
-		{
-			var newText = "FPS: " + currentFPS;
+		if (currentCount != cacheCount /*&& visible*/) {
+		var newText = "FPS: " + currentFPS;
 
-			#if (gl_stats && !disable_cffi && (!html5 || !canvas))
-			newText += "\ntotalDC: " + Context3DStats.totalDrawCalls();
-			newText += "\nstageDC: " + Context3DStats.contextDrawCalls(DrawCallContext.STAGE);
-			newText += "\nstage3DDC: " + Context3DStats.contextDrawCalls(DrawCallContext.STAGE3D);
-			#end
+		#if (gl_stats && !disable_cffi && (!html5 || !canvas))
+		newText += "\ntotalDC: " + Context3DStats.totalDrawCalls();
+		newText += "\nstageDC: " + Context3DStats.contextDrawCalls(DrawCallContext.STAGE);
+		newText += "\nstage3DDC: " + Context3DStats.contextDrawCalls(DrawCallContext.STAGE3D);
+		#end
 
-			if (newText != lastText)
-			{
-				text = newText;
-				lastText = newText;
-			}
+		if (newText != lastText) {
+			text = newText;
+			lastText = newText;
 		}
+	}
 
 		cacheCount = currentCount;
 	}

@@ -1,9 +1,13 @@
 package openfl.text;
 
-import lime.text.Font as LimeFont;
+#if !flash
 import openfl.utils.Assets;
 import openfl.utils.ByteArray;
 import openfl.utils.Future;
+import openfl.text._internal.TextEngine;
+#if lime
+import lime.text.Font as LimeFont;
+#end
 
 /**
 	The Font class is used to manage embedded fonts in SWF files. Embedded
@@ -13,7 +17,12 @@ import openfl.utils.Future;
 	load external fonts, or to create an instance of a Font object by itself.
 	Use the Font class as an abstract base class.
 **/
-class Font extends LimeFont
+#if !openfl_debug
+@:fileXml('tags="haxe,release"')
+@:noDebug
+#end
+@:access(openfl.text._internal.TextEngine)
+class Font #if lime extends LimeFont #end
 {
 	/**
 		The name of an embedded font.
@@ -37,9 +46,21 @@ class Font extends LimeFont
 
 	@:noCompletion private var __initialized:Bool;
 
+	#if openfljs
+	@:noCompletion private static function __init__()
+	{
+		untyped Object.defineProperty(Font.prototype, "fontName", {
+			get: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function () { return this.get_fontName (); }"),
+			set: untyped #if haxe4 js.Syntax.code #else __js__ #end ("function (v) { return this.set_fontName (v); }")
+		});
+	}
+	#end
+
 	public function new(name:String = null)
 	{
+		#if lime
 		super(name);
+		#end
 	}
 
 	/**
@@ -57,14 +78,25 @@ class Font extends LimeFont
 	**/
 	public static function enumerateFonts(enumerateDeviceFonts:Bool = false):Array<Font>
 	{
-		#if native
+		#if (lime && native)
+		TextEngine.initializeDefaultFonts();
 		if (enumerateDeviceFonts)
 		{
 			var _allFonts = __registeredFonts.copy();
-			var files = sys.FileSystem.readDirectory(lime.system.System.fontsDirectory);
-			for (file in files)
+			if (sys.FileSystem.exists(lime.system.System.fontsDirectory))
 			{
-				if (file.toLowerCase().indexOf('.ttf') != -1) _allFonts.push(fromFile(lime.system.System.fontsDirectory + file));
+				var files = sys.FileSystem.readDirectory(lime.system.System.fontsDirectory);
+				for (file in files)
+				{
+					if (file.toLowerCase().indexOf('.ttf') != -1)
+					{
+						var font = fromFile(lime.system.System.fontsDirectory + file);
+						if (font != null)
+						{
+							_allFonts.push(font);
+						}
+					}
+				}
 			}
 
 			// Automatically installed fonts are stored per user basis in an alternative location found
@@ -74,10 +106,17 @@ class Font extends LimeFont
 			var alternateFontsDirectory = '${Sys.getEnv("LocalAppData")}\\Microsoft\\Windows\\Fonts';
 			if (sys.FileSystem.exists(alternateFontsDirectory))
 			{
-				files = sys.FileSystem.readDirectory(alternateFontsDirectory);
+				var files = sys.FileSystem.readDirectory(alternateFontsDirectory);
 				for (file in files)
 				{
-					if (file.toLowerCase().indexOf('.ttf') != -1) _allFonts.push(fromFile(alternateFontsDirectory + file));
+					if (file.toLowerCase().indexOf('.ttf') != -1)
+					{
+						var font = fromFile(alternateFontsDirectory + "\\" + file);
+						if (font != null)
+						{
+							_allFonts.push(font);
+						}
+					}
 				}
 			}
 			#end
@@ -99,7 +138,9 @@ class Font extends LimeFont
 	public static function fromBytes(bytes:ByteArray):Font
 	{
 		var font = new Font();
+		#if lime
 		font.__fromBytes(bytes);
+		#end
 
 		#if lime_cffi
 		return (font.src != null) ? font : null;
@@ -120,7 +161,9 @@ class Font extends LimeFont
 		if (path == null) return null;
 
 		var font = new Font();
+		#if lime
 		font.__fromFile(path);
+		#end
 
 		#if lime_cffi
 		return (font.src != null) ? font : null;
@@ -128,6 +171,18 @@ class Font extends LimeFont
 		return font;
 		#end
 	}
+
+	#if false
+	/**
+		Specifies whether a provided string can be displayed using the
+		currently assigned font.
+
+		@param str The string to test against the current font.
+		@return A value of `true` if the specified string can be fully
+				displayed using this font.
+	**/
+	// @:noCompletion @:dox(hide) public function hasGlyphs (str:String):Bool;
+	#end
 
 	/**
 		Creates a new Font from haxe.io.Bytes or openfl.utils.ByteArray data
@@ -140,6 +195,7 @@ class Font extends LimeFont
 	**/
 	public static function loadFromBytes(bytes:ByteArray):Future<Font>
 	{
+		#if lime
 		return LimeFont.loadFromBytes(bytes).then(function(limeFont)
 		{
 			var font = new Font();
@@ -147,6 +203,9 @@ class Font extends LimeFont
 
 			return Future.withValue(font);
 		});
+		#else
+		return cast Future.withError("Cannot load font from bytes");
+		#end
 	}
 
 	/**
@@ -160,6 +219,7 @@ class Font extends LimeFont
 	**/
 	public static function loadFromFile(path:String):Future<Font>
 	{
+		#if lime
 		return LimeFont.loadFromFile(path).then(function(limeFont)
 		{
 			var font = new Font();
@@ -167,6 +227,9 @@ class Font extends LimeFont
 
 			return Future.withValue(font);
 		});
+		#else
+		return cast Future.withError("Cannot load font from file");
+		#end
 	}
 
 	/**
@@ -182,6 +245,7 @@ class Font extends LimeFont
 	**/
 	public static function loadFromName(path:String):Future<Font>
 	{
+		#if lime
 		return LimeFont.loadFromName(path).then(function(limeFont)
 		{
 			var font = new Font();
@@ -189,6 +253,9 @@ class Font extends LimeFont
 
 			return Future.withValue(font);
 		});
+		#else
+		return cast Future.withError("Cannot load font from name");
+		#end
 	}
 
 	/**
@@ -210,15 +277,23 @@ class Font extends LimeFont
 
 		if (instance != null)
 		{
+			/*if (Reflect.hasField (font, "resourceName")) {
+
+				instance.fontName = __ofResource (Reflect.field (font, "resourceName"));
+
+			}*/
+
 			__registeredFonts.push(instance);
 			__fontByName[instance.fontName] = instance;
 		}
 	}
 
+	#if lime
 	@:noCompletion private function __fromLimeFont(font:LimeFont):Void
 	{
 		__copyFrom(font);
 	}
+	#end
 
 	@:noCompletion private function __initialize():Bool
 	{
@@ -245,11 +320,22 @@ class Font extends LimeFont
 	// Get & Set Methods
 	@:noCompletion private inline function get_fontName():String
 	{
+		#if lime
 		return name;
+		#else
+		return null;
+		#end
 	}
 
 	@:noCompletion private inline function set_fontName(value:String):String
 	{
+		#if lime
 		return name = value;
+		#else
+		return value;
+		#end
 	}
 }
+#else
+typedef Font = flash.text.Font;
+#end
